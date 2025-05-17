@@ -23,10 +23,14 @@ interface MountItem {
   fsType: string;
 }
 
-const Terminal: React.FC = () => {
+interface TerminalProps {
+  mountManager?: MountManager;
+}
+
+const Terminal: React.FC<TerminalProps> = ({ mountManager: propsMountManager }) => {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [currentInput, setCurrentInput] = useState('');
-  const [mountManager] = useState(() => new MountManager());
+  const [mountManager] = useState(() => propsMountManager || new MountManager());
   const [commandParser] = useState(() => new CommandParser(mountManager));
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -209,7 +213,7 @@ const Terminal: React.FC = () => {
 
   return (
     <div 
-      className="terminal-window overflow-auto relative"
+      className="terminal-window overflow-auto relative h-full text-terminal-text"
       ref={terminalRef}
     >
       <div className="terminal-output">
@@ -229,7 +233,7 @@ const Terminal: React.FC = () => {
       </div>
       
       <div className="terminal-input-line sticky bottom-0 bg-terminal-background">
-        <span className="terminal-prompt">
+        <span className="terminal-prompt text-terminal-prompt">
           {mountManager.getCurrentDirectory()}$
         </span>
         <input
