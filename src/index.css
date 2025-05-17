@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,53 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .terminal-window {
+    @apply font-mono bg-terminal-background text-terminal-text p-4 rounded-md shadow-lg overflow-hidden;
+    min-height: 400px;
+    max-height: 70vh;
+  }
+
+  .terminal-output {
+    @apply overflow-y-auto whitespace-pre-wrap;
+  }
+
+  .terminal-input-line {
+    @apply flex items-center mt-2;
+  }
+
+  .terminal-prompt {
+    @apply text-terminal-prompt font-bold mr-2;
+  }
+
+  .terminal-input {
+    @apply bg-transparent outline-none flex-1 text-terminal-text;
+  }
+
+  .terminal-caret {
+    @apply w-2 h-5 bg-terminal-text inline-block ml-1 animate-caret-blink;
+  }
+
+  .terminal-command {
+    @apply text-terminal-command;
+  }
+
+  .terminal-directory {
+    @apply text-terminal-directory font-bold;
+  }
+
+  .terminal-file {
+    @apply text-terminal-file;
+  }
+
+  .terminal-error {
+    @apply text-terminal-error;
+  }
+
+  .terminal-success {
+    @apply text-terminal-success;
   }
 }
