@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MountManager } from '../models/MountManager';
-import { FileSystemNode, FileSystemNodeType } from '../models/FileSystem';
+import { FileSystemNode, FileSystemNodeType, FileNode, DirectoryNode } from '../models/FileSystem';
 import { Card, CardContent } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -26,38 +26,43 @@ const DiskUsage: React.FC<DiskUsageProps> = ({ mountManager }) => {
 
   useEffect(() => {
     const calculateStats = () => {
-      const rootNode = mountManager.getFileSystemTree();
-      const newStats: FileStats = {
-        totalFiles: 0,
-        totalDirectories: 0,
-        totalSize: 0,
-        fileTypes: {}
-      };
+      try {
+        const rootNode = mountManager.getFileSystemTree();
+        const newStats: FileStats = {
+          totalFiles: 0,
+          totalDirectories: 0,
+          totalSize: 0,
+          fileTypes: {}
+        };
 
-      // Recursive function to process all nodes
-      const processNode = (node: FileSystemNode) => {
-        if (node.type === FileSystemNodeType.FILE) {
-          newStats.totalFiles++;
-          newStats.totalSize += node.content?.length || 0;
-          
-          // Extract file extension
-          const parts = node.name.split('.');
-          const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : 'unknown';
-          newStats.fileTypes[ext] = (newStats.fileTypes[ext] || 0) + 1;
-        } else {
-          newStats.totalDirectories++;
-          
-          if (node.children) {
-            node.children.forEach(processNode);
+        // Recursive function to process all nodes
+        const processNode = (node: FileSystemNode) => {
+          if (node.type === FileSystemNodeType.FILE) {
+            newStats.totalFiles++;
+            newStats.totalSize += (node as FileNode).content?.length || 0;
+            
+            // Extract file extension
+            const parts = node.name.split('.');
+            const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : 'unknown';
+            newStats.fileTypes[ext] = (newStats.fileTypes[ext] || 0) + 1;
+          } else if (node.type === FileSystemNodeType.DIRECTORY) {
+            newStats.totalDirectories++;
+            
+            const dirNode = node as DirectoryNode;
+            if (dirNode.children) {
+              Array.from(dirNode.children.values()).forEach(processNode);
+            }
           }
+        };
+
+        if (rootNode) {
+          processNode(rootNode);
         }
-      };
 
-      if (rootNode) {
-        processNode(rootNode);
+        setStats(newStats);
+      } catch (error) {
+        console.error('Error calculating file stats:', error);
       }
-
-      setStats(newStats);
     };
 
     calculateStats();
@@ -135,8 +140,8 @@ const DiskUsage: React.FC<DiskUsageProps> = ({ mountManager }) => {
           <div className="space-y-1">
             {mountManager.getMounts().map((mount, index) => (
               <div key={index} className="flex justify-between">
-                <span className="text-terminal-directory">{mount.mountPoint}</span>
-                <span className="text-slate-400">{mount.fsType}</span>
+                <span className="text-terminal-directory">{mount.path}</span>
+                <span className="text-slate-400">{mount.filesystem.fsType}</span>
               </div>
             ))}
             {mountManager.getMounts().length === 0 && (

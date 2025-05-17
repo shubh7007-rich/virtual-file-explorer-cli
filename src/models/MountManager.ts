@@ -1,3 +1,4 @@
+
 import { FileSystem, FileSystemNode, FileSystemNodeType } from './FileSystem';
 
 export interface MountPoint {
@@ -46,6 +47,51 @@ export class MountManager {
     
     this.currentDirectory = normalized;
     return true;
+  }
+
+  // Get the file system tree starting from the root
+  getFileSystemTree(): FileSystemNode {
+    // Get the root node from the root filesystem
+    const rootNode = this.rootFS.findNode('/') as FileSystemNode;
+    
+    // Process mounted filesystems recursively
+    const processedTree = this.processMountPoints(rootNode, '/');
+    
+    return processedTree;
+  }
+
+  // Process mount points recursively to create a unified file system tree
+  private processMountPoints(node: FileSystemNode, path: string): FileSystemNode {
+    // If node is not a directory, it can't have mount points
+    if (node.type !== FileSystemNodeType.DIRECTORY) {
+      return node;
+    }
+
+    // Create a copy of the directory node
+    const processedNode = { ...node };
+    
+    // For each mount point under this path
+    for (const mount of this.mounts) {
+      // Skip the root mount as it's already processed
+      if (mount.path === '/') continue;
+      
+      // Check if this mount is directly under the current path
+      if (mount.path === path || mount.path.startsWith(path + '/')) {
+        const relativeMountPath = mount.path.substring(path.length === 1 ? 1 : path.length + 1);
+        const segments = relativeMountPath.split('/');
+        
+        // If this is a direct mount point
+        if (segments[0] === '') {
+          // Get the root of the mounted filesystem
+          const mountedRoot = mount.filesystem.findNode('/');
+          if (mountedRoot) {
+            return mountedRoot;
+          }
+        }
+      }
+    }
+    
+    return processedNode;
   }
 
   // Find the filesystem responsible for a given path

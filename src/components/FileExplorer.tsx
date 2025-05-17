@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MountManager } from '../models/MountManager';
-import { FileSystemNode, FileSystemNodeType } from '../models/FileSystem';
+import { FileSystemNode, FileSystemNodeType, DirectoryNode, FileNode } from '../models/FileSystem';
 import { cn } from '@/lib/utils';
 import { ChevronRight, ChevronDown, Folder, File } from 'lucide-react';
 
@@ -61,7 +61,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, path, level, mountManager }) 
 
       {isDirectory && isExpanded && (
         <div>
-          {node.children?.map((child, index) => (
+          {(node as DirectoryNode).children && Array.from((node as DirectoryNode).children.values()).map((child, index) => (
             <TreeNode 
               key={`${fullPath}${child.name}-${index}`}
               node={child} 
@@ -70,7 +70,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, path, level, mountManager }) 
               mountManager={mountManager}
             />
           ))}
-          {(!node.children || node.children.length === 0) && (
+          {(!node as DirectoryNode).children || Array.from((node as DirectoryNode).children.values()).length === 0 && (
             <div 
               className="text-slate-500 italic py-1 text-xs"
               style={{ paddingLeft: `${(level + 1) * 16 + 20}px` }}
