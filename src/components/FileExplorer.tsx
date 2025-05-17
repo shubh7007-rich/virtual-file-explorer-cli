@@ -70,7 +70,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, path, level, mountManager }) 
               mountManager={mountManager}
             />
           ))}
-          {(!node as DirectoryNode).children || Array.from((node as DirectoryNode).children.values()).length === 0 && (
+          {/* Fix the type error by correctly checking if directory is empty */}
+          {isDirectory && ((node as DirectoryNode).children.size === 0) && (
             <div 
               className="text-slate-500 italic py-1 text-xs"
               style={{ paddingLeft: `${(level + 1) * 16 + 20}px` }}
