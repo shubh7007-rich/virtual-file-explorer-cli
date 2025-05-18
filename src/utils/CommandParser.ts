@@ -92,6 +92,8 @@ export class CommandParser {
           return this.handleListMounts();
         case 'rm':
           return this.handleRemove(args);
+        case 'cp':
+          return this.handleCopy(args);
         case 'help':
           return this.handleHelp();
         case 'clear':
@@ -317,6 +319,32 @@ export class CommandParser {
     }
   }
 
+  // Handle cp (copy) command
+  private handleCopy(args: string[]): CommandResult {
+    if (args.length < 2) {
+      return { success: false, message: 'Usage: cp <source_path> <destination_path>' };
+    }
+
+    const sourcePath = args[0];
+    const destPath = args[1];
+    
+    // Read the source file
+    const content = this.mountManager.readFile(sourcePath);
+    
+    if (content === null) {
+      return { success: false, message: `Failed to read source file: ${sourcePath}` };
+    }
+    
+    // Write to the destination file
+    const success = this.mountManager.writeFile(destPath, content);
+    
+    if (success) {
+      return { success: true, message: `File copied from ${sourcePath} to ${destPath}` };
+    } else {
+      return { success: false, message: `Failed to copy to destination: ${destPath}` };
+    }
+  }
+
   // Handle help command
   private handleHelp(): CommandResult {
     const helpText = `
@@ -332,6 +360,7 @@ Available commands:
   unmount <mount_point> - Unmount a filesystem
   mounts                - List mounted filesystems
   rm <path>             - Remove a file or directory
+  cp <source> <dest>    - Copy a file from source to destination
   clear                 - Clear the screen
   help                  - Show this help
   exit                  - Exit the CLI
